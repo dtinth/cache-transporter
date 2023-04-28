@@ -15,14 +15,24 @@ yargs(process.argv.slice(2))
   .demandCommand()
   .strict()
   .help()
-  .command("push", "push", {}, async () => {
-    if (!env.valid) {
-      console.error("Skipping push, environment is invalid.");
-      console.error(env.error);
-      process.exit(0);
+  .command(
+    "push",
+    "push",
+    {
+      "cache-id": {
+        type: "string",
+        demand: true,
+      },
+    },
+    async () => {
+      if (!env.valid) {
+        console.error("Skipping push, environment is invalid.");
+        console.error(env.error);
+        process.exit(0);
+      }
+      console.log("push");
     }
-    console.log("push");
-  })
+  )
   .command("pull", "pull", {}, async () => {
     if (!env.valid) {
       console.error("Skipping pull, environment is invalid.");
