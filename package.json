@@ -10,6 +10,7 @@
     "url": "git+https://github.com/dtinth/cache-transporter"
   },
   "devDependencies": {
+    "@(-.-)/env": "^0.3.2",
     "@tsconfig/node18": "^2.0.0",
     "@types/node": "^18.16.2",
     "@types/yargs": "^17.0.24",

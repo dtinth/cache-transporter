@@ -1,6 +1,9 @@
 lockfileVersion: '6.0'
 
 devDependencies:
+  '@(-.-)/env':
+    specifier: ^0.3.2
+    version: 0.3.2(zod@3.21.4)
   '@tsconfig/node18':
     specifier: ^2.0.0
     version: 2.0.0
@@ -30,6 +33,14 @@ devDependencies:
     version: 17.7.2
 
 packages:
+
+  /@(-.-)/env@0.3.2(zod@3.21.4):
+    resolution: {integrity: sha512-7KPrDKsq6ADQdBwEuPMNIVoo89/wKLMeDzaCKqS/cujuj0TW3INB/gw7g0Gz4/I4T/JZkS66p6/mKK97YR/rvw==}
+    peerDependencies:
+      zod: '>=3.0.0'
+    dependencies:
+      zod: 3.21.4
+    dev: true
 
   /@esbuild/android-arm64@0.17.18:
     resolution: {integrity: sha512-/iq0aK0eeHgSC3z55ucMAHO05OIqmQehiGay8eP5l/5l+iEr4EIbh4/MI8xD9qRFjqzgkc0JkX0LculNC9mXBw==}
@@ -1084,4 +1095,8 @@ packages:
       string-width: 4.2.3
       y18n: 5.0.8
       yargs-parser: 21.1.1
+    dev: true
+
+  /zod@3.21.4:
+    resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
     dev: true
