@@ -1,5 +1,5 @@
 {
-	"name": "cache-transporter",
+  "name": "cache-transporter",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
@@ -9,11 +9,15 @@
   "repository": {
     "url": "git+https://github.com/dtinth/cache-transporter"
   },
-	"devDependencies": {
-		"tsup": "^6.7.0",
-		"typescript": "^5.0.4",
-		"prettier": "^2.8.8",
-		"@types/node": "^18.16.2",
-		"@tsconfig/node18": "^2.0.0"
-	}
+  "devDependencies": {
+    "@tsconfig/node18": "^2.0.0",
+    "@types/node": "^18.16.2",
+    "@types/yargs": "^17.0.24",
+    "globby": "^13.1.4",
+    "prettier": "^2.8.8",
+    "tar": "^6.1.13",
+    "tsup": "^6.7.0",
+    "typescript": "^5.0.4",
+    "yargs": "^17.7.2"
+  }
 }
