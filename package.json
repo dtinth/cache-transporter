@@ -1,0 +1,19 @@
+{
+	"name": "cache-transporter",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm",
+    "dev": "pnpm run build --watch"
+  },
+  "repository": {
+    "url": "git+https://github.com/dtinth/cache-transporter"
+  },
+	"devDependencies": {
+		"tsup": "^6.7.0",
+		"typescript": "^5.0.4",
+		"prettier": "^2.8.8",
+		"@types/node": "^18.16.2",
+		"@tsconfig/node18": "^2.0.0"
+	}
+}
