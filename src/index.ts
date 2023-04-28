@@ -23,8 +23,14 @@ yargs(process.argv.slice(2))
         type: "string",
         demand: true,
       },
+      path: {
+        type: "string",
+        array: true,
+        demand: true,
+      },
     },
-    async () => {
+    async (args) => {
+      console.log(args);
       if (!env.valid) {
         console.error("Skipping push, environment is invalid.");
         console.error(env.error);
@@ -40,6 +46,10 @@ yargs(process.argv.slice(2))
       process.exit(0);
     }
     console.log("pull");
+  })
+  .command("prune", "prune", {}, async () => {
+    const token = env.CACHE_TRANSPORTER_TOKEN;
+    console.log("prune");
   })
   .command("server", "server", {}, async () => {
     const token = env.CACHE_TRANSPORTER_TOKEN;
