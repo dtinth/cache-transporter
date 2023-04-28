@@ -15,7 +15,7 @@ yargs(process.argv.slice(2))
   .demandCommand()
   .strict()
   .help()
-  .command("$0", "push", {}, async () => {
+  .command("push", "push", {}, async () => {
     if (!env.valid) {
       console.error("Skipping push, environment is invalid.");
       console.error(env.error);
@@ -23,7 +23,7 @@ yargs(process.argv.slice(2))
     }
     console.log("push");
   })
-  .command("$0", "pull", {}, async () => {
+  .command("pull", "pull", {}, async () => {
     if (!env.valid) {
       console.error("Skipping pull, environment is invalid.");
       console.error(env.error);
@@ -31,7 +31,7 @@ yargs(process.argv.slice(2))
     }
     console.log("pull");
   })
-  .command("$0", "server", {}, async () => {
+  .command("server", "server", {}, async () => {
     const token = env.CACHE_TRANSPORTER_TOKEN;
     console.log("server");
   })
