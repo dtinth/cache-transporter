@@ -28,5 +28,11 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "cache-transporter": "dist/index.js"
   }
 }
