@@ -4,9 +4,10 @@ import yargs from "yargs";
 import { Env } from "@(-.-)/env";
 import { z } from "zod";
 import tar from "tar";
-import { existsSync, unlinkSync } from "fs";
+import { existsSync, statSync, unlinkSync } from "fs";
 import { fromFileSync } from "hasha";
 import { globbyStream } from "globby";
+import { resolve } from "path";
 
 const networkEnv = Env(
   z.object({
@@ -63,35 +64,41 @@ yargs(process.argv.slice(2))
       },
     },
     async (args) => {
-      console.log("push");
+      console.log("save");
 
       const outFile = "/tmp/nm.tgz";
       const cwd = "node_modules";
       const inPaths = ["."];
 
-      // for await (const entry of globbyStream("**/*", { cwd, dot: true })) {
-      //   console.log(entry);
-      // }
+      let numberOfFiles = 0;
+      let totalBytes = 0;
+      for await (const entry of globbyStream("**/*", { cwd, dot: true })) {
+        const stat = statSync(resolve(cwd, entry as string));
+        numberOfFiles += 1;
+        totalBytes += stat.size;
+      }
+      console.log("Number of files:", numberOfFiles);
+      console.log("Total bytes:", totalBytes);
 
       if (existsSync(outFile)) unlinkSync(outFile);
       const progressReporter = (() => {
         let count = 0;
         let last = Date.now();
-        const report = () => console.log("Added", count, "files.");
         return {
           tick: () => {
             count += 1;
             if (Date.now() - last > 1000) {
-              report();
               last = Date.now();
+              console.log("Archiving... Number of files so far:", count);
             }
           },
           finalize() {
-            report();
+            console.log("Finished archiving. Number of files:", count);
           },
         };
       })();
       const filter = (path: string) => {
+        // const realPath = resolve(cwd, path);
         progressReporter.tick();
         return true;
       };
