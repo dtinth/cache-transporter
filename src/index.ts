@@ -6,6 +6,7 @@ import { z } from "zod";
 import tar from "tar";
 import { existsSync, unlinkSync } from "fs";
 import { fromFileSync } from "hasha";
+import { globbyStream } from "globby";
 
 const networkEnv = Env(
   z.object({
@@ -67,6 +68,11 @@ yargs(process.argv.slice(2))
       const outFile = "/tmp/nm.tgz";
       const cwd = "node_modules";
       const inPaths = ["."];
+
+      // for await (const entry of globbyStream("**/*", { cwd, dot: true })) {
+      //   console.log(entry);
+      // }
+
       if (existsSync(outFile)) unlinkSync(outFile);
       const progressReporter = (() => {
         let count = 0;
