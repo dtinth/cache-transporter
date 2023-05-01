@@ -64,11 +64,8 @@ yargs(process.argv.slice(2))
       },
     },
     async (args) => {
-      console.log("save");
-
-      const cacheId = "nm";
-
-      await archiveCache(cacheId, ["node_modules"]);
+      const archive = await archiveCache(args["cache-id"], args["path"]);
+      console.log(archive);
     }
   )
   .command("pull", "pull", {}, async () => {
@@ -136,7 +133,14 @@ async function archiveCache(cacheId: string, paths: string[]) {
   await tar.c({ gzip: true, file: outArchiveFile, cwd, filter }, inPaths);
   progressReporter.finalize();
   const hash = fromFileSync(outArchiveFile, { algorithm: "sha256" });
-  console.log(hash);
+  return {
+    cwd: resolve(),
+    base: commonAncestor,
+    archiveFile: {
+      path: outArchiveFile,
+      hash,
+    },
+  };
 }
 
 function getCommonAncestor(absolutePaths: string[]) {
