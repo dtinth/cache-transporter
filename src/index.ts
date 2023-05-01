@@ -14,11 +14,13 @@ import {
 } from "fs";
 import hasha, { fromFileSync } from "hasha";
 import { globbyStream } from "globby";
-import { resolve, relative, sep, dirname } from "path";
-import { networkClientEnv, fsEnv, networkServerEnv } from "./env";
+import { resolve, relative, dirname } from "path";
+import { networkClientEnv, networkServerEnv } from "./env";
 import { Readable } from "stream";
 import { pipeline } from "stream/promises";
 import { FastifyReply, FastifyRequest } from "fastify";
+import { getPaths } from "./getPaths";
+import { getCommonAncestor } from "./getCommonAncestor";
 
 yargs(process.argv.slice(2))
   .demandCommand()
@@ -253,19 +255,4 @@ async function startServer() {
     host: networkServerEnv.CACHE_TRANSPORTER_HOST,
   });
   console.log(result);
-}
-
-function getPaths(cacheId: string) {
-  const archiveFile = `${fsEnv.CACHE_TRANSPORTER_TEMP}/${cacheId}.tgz`;
-  const metadataFile = `${fsEnv.CACHE_TRANSPORTER_TEMP}/${cacheId}.json`;
-  return { archiveFile, metadataFile };
-}
-
-function getCommonAncestor(absolutePaths: string[]) {
-  const pairwise = (a: string, b: string) => {
-    return relative(a, b)
-      .split(sep)
-      .reduce((x, y) => (y === ".." ? resolve(x, y) : x), a);
-  };
-  return absolutePaths.reduce(pairwise);
 }
