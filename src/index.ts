@@ -73,7 +73,8 @@ yargs(process.argv.slice(2))
       let numberOfFiles = 0;
       let totalBytes = 0;
       for await (const entry of globbyStream("**/*", { cwd, dot: true })) {
-        const stat = statSync(resolve(cwd, entry as string));
+        const realPath = resolve(cwd, entry as string);
+        const stat = statSync(realPath);
         numberOfFiles += 1;
         totalBytes += stat.size;
       }
