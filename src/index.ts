@@ -6,6 +6,7 @@ import {
   createReadStream,
   createWriteStream,
   existsSync,
+  mkdirSync,
   readFileSync,
   statSync,
   unlinkSync,
@@ -13,7 +14,7 @@ import {
 } from "fs";
 import { fromFileSync } from "hasha";
 import { globbyStream } from "globby";
-import { resolve, relative, sep } from "path";
+import { resolve, relative, sep, dirname } from "path";
 import { networkClientEnv, fsEnv, networkServerEnv } from "./env";
 import { Readable } from "stream";
 import { pipeline } from "stream/promises";
@@ -172,7 +173,7 @@ async function upload(cacheId: string) {
   }
   const metadata = JSON.parse(readFileSync(metadataFile, "utf8"));
   const archiveUrl = `${networkClientEnv.CACHE_TRANSPORTER_URI}/cas/${metadata.hash}`;
-  await fetch(archiveUrl, {
+  const response = await fetch(archiveUrl, {
     method: "PUT",
     headers: {
       "Content-Type": "application/octet-stream",
@@ -181,6 +182,10 @@ async function upload(cacheId: string) {
     // @ts-expect-error - https://github.com/nodejs/node/issues/46221
     duplex: "half",
   });
+  if (!response.ok) {
+    throw new Error("Upload content failed: " + response.status);
+  }
+  console.log("Uploaded archive. Status:", response.status);
 }
 
 async function startServer() {
@@ -198,13 +203,25 @@ async function startServer() {
       reply.code(400);
       return "Invalid hash";
     }
-    const path = `${fsEnv.CACHE_TRANSPORTER_TEMP}/${hash}`;
+    const path = `${networkServerEnv.CACHE_TRANSPORTER_STORAGE}/cas/${hash}`;
+    mkdirSync(dirname(path), { recursive: true });
     await pipeline(request.raw, createWriteStream(path));
     const computedHash = fromFileSync(path, { algorithm: "sha256" });
     if (computedHash !== hash) {
       reply.code(422);
       return "Hash mismatch";
     }
+    return "OK";
+  });
+  server.put("/ac/:hash", async (request, reply) => {
+    const { hash } = request.params as any;
+    if (!hash.match(/^[a-f0-9]{64}$/)) {
+      reply.code(400);
+      return "Invalid hash";
+    }
+    const path = `${networkServerEnv.CACHE_TRANSPORTER_STORAGE}/ac/${hash}`;
+    mkdirSync(dirname(path), { recursive: true });
+    await pipeline(request.raw, createWriteStream(path));
     return "OK";
   });
   const result = await server.listen({
