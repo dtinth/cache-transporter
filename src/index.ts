@@ -12,7 +12,7 @@ import {
   unlinkSync,
   writeFileSync,
 } from "fs";
-import { fromFileSync } from "hasha";
+import hasha, { fromFileSync } from "hasha";
 import { globbyStream } from "globby";
 import { resolve, relative, sep, dirname } from "path";
 import { networkClientEnv, fsEnv, networkServerEnv } from "./env";
@@ -148,6 +148,7 @@ async function save(cacheId: string, paths: string[]) {
   progressReporter.finalize();
   const hash = fromFileSync(outArchiveFile, { algorithm: "sha256" });
   const metadata = {
+    cacheId,
     cwd: resolve(),
     base: commonAncestor,
     hash: hash,
@@ -184,9 +185,25 @@ async function upload(cacheId: string) {
     duplex: "half",
   });
   if (!response.ok) {
-    throw new Error("Upload content failed: " + response.status);
+    throw new Error("Upload archive failed: " + response.status);
   }
   console.log("Uploaded archive. Status:", response.status);
+
+  const metadataUrl = `${networkClientEnv.CACHE_TRANSPORTER_URI}/ac/${hasha(
+    cacheId,
+    { algorithm: "sha256" }
+  )}`;
+  const response2 = await fetch(metadataUrl, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/octet-stream",
+    },
+    body: readFileSync(metadataFile),
+  });
+  if (!response2.ok) {
+    throw new Error("Upload metadata failed: " + response2.status);
+  }
+  console.log("Uploaded metadata. Status:", response2.status);
 }
 
 async function startServer() {
