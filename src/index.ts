@@ -5,6 +5,7 @@ import { networkClientEnv } from "./env";
 import { startServer } from "./startServer";
 import { upload } from "./upload";
 import { save } from "./save";
+import { download } from "./download";
 
 yargs(process.argv.slice(2))
   .demandCommand()
@@ -64,6 +65,19 @@ yargs(process.argv.slice(2))
     },
     async (args) => {
       await upload(args["cache-id"]);
+    }
+  )
+  .command(
+    "download",
+    "Download the cache data from the server",
+    {
+      "cache-id": {
+        type: "string",
+        demand: true,
+      },
+    },
+    async (args) => {
+      await download(args["cache-id"]);
     }
   )
   .command("pull", "pull", {}, async () => {
