@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "tsup src/index.ts --format esm",
+    "build": "tsup",
     "dev": "pnpm run build --watch"
   },
   "repository": {
@@ -13,8 +13,10 @@
     "@(-.-)/env": "^0.3.2",
     "@tsconfig/node18": "^2.0.0",
     "@types/node": "^18.16.2",
+    "@types/tar": "^6.1.4",
     "@types/yargs": "^17.0.24",
     "globby": "^13.1.4",
+    "hasha": "^5.2.2",
     "prettier": "^2.8.8",
     "tar": "^6.1.13",
     "tsup": "^6.7.0",

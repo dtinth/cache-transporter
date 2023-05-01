@@ -10,12 +10,18 @@ devDependencies:
   '@types/node':
     specifier: ^18.16.2
     version: 18.16.2
+  '@types/tar':
+    specifier: ^6.1.4
+    version: 6.1.4
   '@types/yargs':
     specifier: ^17.0.24
     version: 17.0.24
   globby:
     specifier: ^13.1.4
     version: 13.1.4
+  hasha:
+    specifier: ^5.2.2
+    version: 5.2.2
   prettier:
     specifier: ^2.8.8
     version: 2.8.8
@@ -304,6 +310,13 @@ packages:
 
   /@types/node@18.16.2:
     resolution: {integrity: sha512-GQW/JL/5Fz/0I8RpeBG9lKp0+aNcXEaVL71c0D2Q0QHDTFvlYKT7an0onCUXj85anv7b4/WesqdfchLc0jtsCg==}
+    dev: true
+
+  /@types/tar@6.1.4:
+    resolution: {integrity: sha512-Cp4oxpfIzWt7mr2pbhHT2OTXGMAL0szYCzuf8lRWyIMCgsx6/Hfc3ubztuhvzXHXgraTQxyOCmmg7TDGIMIJJQ==}
+    dependencies:
+      '@types/node': 18.16.2
+      minipass: 4.2.8
     dev: true
 
   /@types/yargs-parser@21.0.0:
@@ -606,6 +619,14 @@ packages:
       ignore: 5.2.4
       merge2: 1.4.1
       slash: 4.0.0
+    dev: true
+
+  /hasha@5.2.2:
+    resolution: {integrity: sha512-Hrp5vIK/xr5SkeN2onO32H0MgNZ0f17HRNH39WfL0SYUNOTZ5Lz1TJ8Pajo/87dYGEFlLMm7mIc/k/s6Bvz9HQ==}
+    engines: {node: '>=8'}
+    dependencies:
+      is-stream: 2.0.1
+      type-fest: 0.8.1
     dev: true
 
   /human-signals@2.1.0:
@@ -1027,6 +1048,11 @@ packages:
     transitivePeerDependencies:
       - supports-color
       - ts-node
+    dev: true
+
+  /type-fest@0.8.1:
+    resolution: {integrity: sha512-4dbzIzqvjtgiM5rw1k5rEHtBANKmdudhGyBEajN01fEyhaAIhsoKNy6y7+IN93IfpFtwY9iqi7kD+xwKhQsNJA==}
+    engines: {node: '>=8'}
     dev: true
 
   /typescript@5.0.4:
