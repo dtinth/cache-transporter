@@ -1,15 +1,9 @@
-import {
-  createReadStream,
-  createWriteStream,
-  existsSync,
-  readFileSync,
-  writeFileSync,
-} from "fs";
+import { createWriteStream, writeFileSync } from "fs";
 import hasha from "hasha";
-import { networkClientEnv } from "./env";
 import { Readable } from "stream";
-import { getPaths } from "./getPaths";
 import { pipeline } from "stream/promises";
+import { networkClientEnv } from "./env";
+import { getPaths } from "./getPaths";
 
 export async function download(cacheId: string) {
   const { archiveFile, metadataFile } = getPaths(cacheId);
