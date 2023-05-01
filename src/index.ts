@@ -1,25 +1,22 @@
 #!/usr/bin/env node
 
 import yargs from "yargs";
-import { Env } from "@(-.-)/env";
-import { z } from "zod";
 import tar from "tar";
-import { existsSync, statSync, unlinkSync } from "fs";
+import {
+  createReadStream,
+  createWriteStream,
+  existsSync,
+  readFileSync,
+  statSync,
+  unlinkSync,
+  writeFileSync,
+} from "fs";
 import { fromFileSync } from "hasha";
 import { globbyStream } from "globby";
 import { resolve, relative, sep } from "path";
-
-const networkEnv = Env(
-  z.object({
-    CACHE_TRANSPORTER_TOKEN: z.string(),
-    CACHE_TRANSPORTER_URI: z.string().optional(),
-  })
-);
-const fsEnv = Env(
-  z.object({
-    CACHE_TRANSPORTER_TEMP: z.string().default("/tmp"),
-  })
-);
+import { networkClientEnv, fsEnv, networkServerEnv } from "./env";
+import { Readable } from "stream";
+import { pipeline } from "stream/promises";
 
 yargs(process.argv.slice(2))
   .demandCommand()
@@ -41,9 +38,9 @@ yargs(process.argv.slice(2))
     },
     async (args) => {
       console.log(args);
-      if (!networkEnv.valid) {
+      if (!networkClientEnv.valid) {
         console.error("Skipping push, environment is invalid.");
-        console.error(networkEnv.error);
+        console.error(networkClientEnv.error);
         process.exit(0);
       }
       console.log("push");
@@ -64,35 +61,50 @@ yargs(process.argv.slice(2))
       },
     },
     async (args) => {
-      const archive = await archiveCache(args["cache-id"], args["path"]);
+      const archive = await save(args["cache-id"], args["path"]);
       console.log(archive);
     }
   )
+  .command(
+    "upload",
+    "Upload the cache data to the server",
+    {
+      "cache-id": {
+        type: "string",
+        demand: true,
+      },
+    },
+    async (args) => {
+      await upload(args["cache-id"]);
+    }
+  )
   .command("pull", "pull", {}, async () => {
-    if (!networkEnv.valid) {
+    if (!networkClientEnv.valid) {
       console.error("Skipping pull, environment is invalid.");
-      console.error(networkEnv.error);
+      console.error(networkClientEnv.error);
       process.exit(0);
     }
     console.log("pull");
   })
   .command("prune", "prune", {}, async () => {
-    const token = networkEnv.CACHE_TRANSPORTER_TOKEN;
-    console.log("prune");
+    // const token = networkClientEnv.CACHE_TRANSPORTER_TOKEN;
+    // console.log("prune");
   })
-  .command("server", "[UNIMPLENTED] server", {}, async () => {
-    const token = networkEnv.CACHE_TRANSPORTER_TOKEN;
-    console.log("server");
+  .command("server", "server", {}, async () => {
+    // const token = networkClientEnv.CACHE_TRANSPORTER_TOKEN;
+    // console.log("server");
+    await startServer();
   })
   .parse();
 
-async function archiveCache(cacheId: string, paths: string[]) {
+async function save(cacheId: string, paths: string[]) {
   const resolvedPaths = paths.map((path) => resolve(path));
   const commonAncestor = getCommonAncestor(resolvedPaths);
   const relativePaths = resolvedPaths.map(
     (path) => "./" + relative(commonAncestor, path)
   );
-  const outArchiveFile = `${fsEnv.CACHE_TRANSPORTER_TEMP}/${cacheId}.tgz`;
+  const { archiveFile: outArchiveFile, metadataFile: outMetadataFile } =
+    getPaths(cacheId);
 
   const cwd = commonAncestor;
   const inPaths = relativePaths;
@@ -133,14 +145,79 @@ async function archiveCache(cacheId: string, paths: string[]) {
   await tar.c({ gzip: true, file: outArchiveFile, cwd, filter }, inPaths);
   progressReporter.finalize();
   const hash = fromFileSync(outArchiveFile, { algorithm: "sha256" });
-  return {
+  const metadata = {
     cwd: resolve(),
     base: commonAncestor,
+    hash: hash,
+  };
+  writeFileSync(outMetadataFile, JSON.stringify(metadata, null, 2));
+  console.log("Wrote metadata:", outMetadataFile);
+  return {
     archiveFile: {
       path: outArchiveFile,
-      hash,
+    },
+    metadataFile: {
+      path: outMetadataFile,
     },
   };
+}
+
+async function upload(cacheId: string) {
+  const { archiveFile, metadataFile } = getPaths(cacheId);
+  if (!existsSync(archiveFile)) {
+    throw new Error("Archive file does not exist: " + archiveFile);
+  }
+  if (!existsSync(metadataFile)) {
+    throw new Error("Metadata file does not exist: " + metadataFile);
+  }
+  const metadata = JSON.parse(readFileSync(metadataFile, "utf8"));
+  const archiveUrl = `${networkClientEnv.CACHE_TRANSPORTER_URI}/cas/${metadata.hash}`;
+  await fetch(archiveUrl, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/octet-stream",
+    },
+    body: Readable.toWeb(createReadStream(archiveFile)) as any,
+    // @ts-expect-error - https://github.com/nodejs/node/issues/46221
+    duplex: "half",
+  });
+}
+
+async function startServer() {
+  const { default: fastify } = await import("fastify");
+  const server = fastify({ logger: true });
+  server.addContentTypeParser(
+    "application/octet-stream",
+    function (request, payload, done) {
+      done(null);
+    }
+  );
+  server.put("/cas/:hash", async (request, reply) => {
+    const { hash } = request.params as any;
+    if (!hash.match(/^[a-f0-9]{64}$/)) {
+      reply.code(400);
+      return "Invalid hash";
+    }
+    const path = `${fsEnv.CACHE_TRANSPORTER_TEMP}/${hash}`;
+    await pipeline(request.raw, createWriteStream(path));
+    const computedHash = fromFileSync(path, { algorithm: "sha256" });
+    if (computedHash !== hash) {
+      reply.code(422);
+      return "Hash mismatch";
+    }
+    return "OK";
+  });
+  const result = await server.listen({
+    port: networkServerEnv.CACHE_TRANSPORTER_PORT,
+    host: networkServerEnv.CACHE_TRANSPORTER_HOST,
+  });
+  console.log(result);
+}
+
+function getPaths(cacheId: string) {
+  const archiveFile = `${fsEnv.CACHE_TRANSPORTER_TEMP}/${cacheId}.tgz`;
+  const metadataFile = `${fsEnv.CACHE_TRANSPORTER_TEMP}/${cacheId}.json`;
+  return { archiveFile, metadataFile };
 }
 
 function getCommonAncestor(absolutePaths: string[]) {

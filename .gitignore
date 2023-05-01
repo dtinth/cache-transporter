@@ -27,3 +27,4 @@ dist
 /out
 .data
 .DS_Store
+.envrc
