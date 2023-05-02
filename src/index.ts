@@ -6,6 +6,7 @@ import { startServer } from "./startServer";
 import { upload } from "./upload";
 import { save } from "./save";
 import { download } from "./download";
+import { restore } from "./restore";
 
 yargs(process.argv.slice(2))
   .demandCommand()
@@ -78,6 +79,19 @@ yargs(process.argv.slice(2))
     },
     async (args) => {
       await download(args["cache-id"]);
+    }
+  )
+  .command(
+    "restore",
+    "Restore the downloaded cache data",
+    {
+      "cache-id": {
+        type: "string",
+        demand: true,
+      },
+    },
+    async (args) => {
+      await restore(args["cache-id"]);
     }
   )
   .command("pull", "pull", {}, async () => {

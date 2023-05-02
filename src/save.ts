@@ -5,6 +5,7 @@ import { globbyStream } from "globby";
 import { resolve, relative } from "path";
 import { getPaths } from "./getPaths";
 import { getCommonAncestor } from "./getCommonAncestor";
+import { Metadata } from "./Metadata";
 
 export async function save(cacheId: string, paths: string[]) {
   const resolvedPaths = paths.map((path) => resolve(path));
@@ -54,7 +55,7 @@ export async function save(cacheId: string, paths: string[]) {
   await tar.c({ gzip: true, file: outArchiveFile, cwd, filter }, inPaths);
   progressReporter.finalize();
   const hash = fromFileSync(outArchiveFile, { algorithm: "sha256" });
-  const metadata = {
+  const metadata: Metadata = {
     cacheId,
     cwd: resolve(),
     base: commonAncestor,
