@@ -5,7 +5,7 @@ import { resolve, relative } from "path";
 import { getPaths } from "./getPaths";
 import { getCommonAncestor } from "./getCommonAncestor";
 import { Metadata } from "./Metadata";
-import { timer } from "./timer";
+import { createProgressReporter } from "./createProgressReporter";
 
 export async function save(cacheId: string, paths: string[]) {
   const resolvedPaths = paths.map((path) => resolve(path));
@@ -18,7 +18,7 @@ export async function save(cacheId: string, paths: string[]) {
 
   const cwd = commonAncestor;
   const inPaths = relativePaths;
-  const scanReporter = progressReporter("Scanning files", "Scaned files");
+  const scanReporter = createProgressReporter("Scanning files", "Scaned files");
   let totalBytes = 0;
   const counter = (path: string, stat: FileStat) => {
     scanReporter.tick();
@@ -32,7 +32,10 @@ export async function save(cacheId: string, paths: string[]) {
 
   console.log("Creating archive:", outArchiveFile);
   if (existsSync(outArchiveFile)) unlinkSync(outArchiveFile);
-  const archiveReporter = progressReporter("Archiving files", "Archived files");
+  const archiveReporter = createProgressReporter(
+    "Archiving files",
+    "Archived files"
+  );
   const filter = (path: string) => {
     archiveReporter.tick();
     return true;
@@ -57,24 +60,3 @@ export async function save(cacheId: string, paths: string[]) {
     },
   };
 }
-
-const progressReporter = (
-  inProgressMessage: string,
-  finishedMessage: string
-) => {
-  let count = 0;
-  let last = Date.now();
-  const t = timer();
-  return {
-    tick: () => {
-      count += 1;
-      if (Date.now() - last > 1000) {
-        last = Date.now();
-        console.log(`${inProgressMessage}... Number of files so far: ${count}`);
-      }
-    },
-    finalize() {
-      console.log(`${finishedMessage} in ${t()}. Number of files: ${count}`);
-    },
-  };
-};
